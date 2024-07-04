@@ -134,7 +134,6 @@ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out s
 - サーバー秘密鍵
 ```shell
 cp -p ca.crt server.crt server.key /mnt/share/server
-exit
 ```
 
 クライアント送付対象ファイルは下記の通り。
