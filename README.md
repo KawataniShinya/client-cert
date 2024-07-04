@@ -83,7 +83,7 @@ docker compose ps
 ## usage
 ### 1. HTTP通信
 証明書を利用しない通常のHTTP通信。<br>
-対象タグ : [https](https://github.com/KawataniShinya/client-cert/tree/http)
+対象タグ : [http](https://github.com/KawataniShinya/client-cert/tree/http)
 
 #### 1-1. 通信確認
 正常応答を確認
@@ -93,7 +93,8 @@ curl http://localhost.app.sample.jp
 ```
 
 ### 2. HTTPS通信
-CA証明書、サーバー証明書を発行し、HTTPS通信可能にする。
+CA証明書、サーバー証明書を発行し、HTTPS通信可能にする。<br>
+対象タグ : [https](https://github.com/KawataniShinya/client-cert/tree/https)
 
 #### 2-1. CAの自己署名証明書の作成
 ##### 2-1-1. CA秘密鍵作成
