@@ -28,7 +28,7 @@ docker compose build
 
 ### 2. 初期設定のためにコンテナ起動
 ```shell
-docker compose up -d app db 
+docker compose up -d app node db
 ```
 
 ### 3. 初期設定(webバックエンド)
