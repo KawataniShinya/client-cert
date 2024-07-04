@@ -168,7 +168,8 @@ curl --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
 ```
 
 ### 3. mTLS
-クライアント証明書を発行し、mTLS通信を可能とする。
+クライアント証明書を発行し、mTLS通信を可能とする。<br>
+対象タグ : [mTLS](https://github.com/KawataniShinya/client-cert/tree/mTLS)
 
 #### 3-1. クライアント用秘密鍵作成
 ```shell
@@ -246,6 +247,65 @@ curl --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
 ```
 
 クライアント証明書指定のHTTPS通信は正常応答を確認
+```shell
+curl --cert /mnt/share/client/client.crt --key /mnt/share/client/client.key --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
+```
+
+### 4. クライアント証明書の失効
+著名されたクライアント証明書を失効させ、アクセス不可にする。
+
+#### 4-1. CA環境セットアップ
+CAで失効リストを作成する上で不足している環境をセットアップ。<br>
+必要ディレクトリの作成、シリアルナンバーの初期化、CA秘密鍵と証明書の配置を実施。
+
+```shell
+docker compose exec ca bash
+cd /mnt/share/ca
+```
+```shell
+mkdir -p /etc/pki/CA/{certs,crl,newcerts,private}
+touch /etc/pki/CA/index.txt
+echo 1000 > /etc/pki/CA/serial
+echo 1000 > /etc/pki/CA/crlnumber
+cp -p /mnt/share/ca/ca.key /etc/pki/CA/private/cakey.pem
+cp -p /mnt/share/ca/ca.crt /etc/pki/CA/cacert.pem
+```
+
+#### 4-2. 失効リスト登録
+失効させるクライアント証明書のシリアル番号を登録
+```shell
+openssl ca -revoke client.crt -keyfile ca.key -cert ca.crt -config /etc/ssl/openssl.cnf
+```
+```shell
+cat /etc/pki/CA/index.txt
+```
+
+#### 4-3. 証明書失効リスト(CRL)を生成
+```shell
+openssl ca -gencrl -out /mnt/share/ca/crl.pem -crldays 365 -config /etc/ssl/openssl.cnf
+```
+
+#### 4-4. 証明書送信
+共有ディレクトリへのコピーをサーバーへのファイル連携とみなす。<br>
+サーバー送付対象ファイルは下記の通り。
+- CRL(証明書失効リスト)
+
+```shell
+cp crl.pem /mnt/share/server/
+```
+```shell
+exit
+```
+
+#### 4-5. 設定反映(コンテナ再起動)
+```shell
+docker compose down
+docker compose build
+docker compose up -d
+```
+
+#### 4-6. 通信確認
+認証されていたクライアント証明書を指定したHTTPS通信でもエラー
 ```shell
 curl --cert /mnt/share/client/client.crt --key /mnt/share/client/client.key --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
 ```
