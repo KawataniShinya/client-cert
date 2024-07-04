@@ -252,11 +252,12 @@ curl --cert /mnt/share/client/client.crt --key /mnt/share/client/client.key --ca
 ```
 
 ### 4. クライアント証明書の失効
-著名されたクライアント証明書を失効させ、アクセス不可にする。
+著名されたクライアント証明書を失効させ、アクセス不可にする。<br>
+対象タグ : [crl](https://github.com/KawataniShinya/client-cert/tree/crl)
 
 #### 4-1. CA環境セットアップ
 CAで失効リストを作成する上で不足している環境をセットアップ。<br>
-必要ディレクトリの作成、シリアルナンバーの初期化、CA秘密鍵と証明書の配置を実施。
+必要ディレクトリの作成、シリアルナンバーの初期化、CA秘密鍵と証明書の配置を実施。(コンテナ起動初回のみ)
 
 ```shell
 docker compose exec ca bash
@@ -306,6 +307,9 @@ docker compose up -d
 
 #### 4-6. 通信確認
 認証されていたクライアント証明書を指定したHTTPS通信でもエラー
+```shell
+docker compose exec client bash
+````
 ```shell
 curl --cert /mnt/share/client/client.crt --key /mnt/share/client/client.key --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
 ```
