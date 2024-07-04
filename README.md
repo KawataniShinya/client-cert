@@ -166,3 +166,86 @@ HTTPS通信は正常応答を確認
 ```shell
 curl --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
 ```
+
+### 3. mTLS
+クライアント証明書を発行し、mTLS通信を可能とする。
+
+#### 3-1. クライアント用秘密鍵作成
+```shell
+docker compose exec ca bash
+cd /mnt/share/ca
+```
+```shell
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out client.key
+```
+
+#### 3-2. クライアント用証明書署名要求(CSR)作成
+```shell
+openssl req -new -key client.key -out client.csr -subj "/C=JP/ST=Osaka/L=Chuou-ku/O=Org/OU=Sample/CN=Client"
+```
+
+#### 3-3. クライアント用証明書署名
+```shell
+openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365
+```
+
+#### 3-4. クライアント証明書のPKCS#12形式への変換
+パスワードは`password123`とする。
+```shell
+openssl pkcs12 -export -out client.p12 -inkey client.key -in client.crt -passout pass:password123
+```
+
+#### 3-5. 証明書送信
+共有ディレクトリへのコピーをサーバーへのファイル連携とみなす。<br>
+クライアント送付対象ファイルは下記の通り。
+- クライアント証明書(PKCS#12形式)
+
+```shell
+cp -p client.p12 /mnt/share/client
+exit
+```
+
+#### 3-6. クライアント証明書の展開
+展開に必要パスワードは先に設定した`password123`とする。
+
+##### 3-6-1. クライアント証明書取得
+```shell
+docker compose exec client bash
+cd /mnt/share/client
+```
+```shell
+openssl pkcs12 -in client.p12 -out client.crt -clcerts -nokeys
+# (パスワード入力)
+```
+
+##### 3-6-2. クライアント秘密鍵取得
+```shell
+openssl pkcs12 -in client.p12 -out client.key -nocerts -nodes
+# (パスワード入力)
+```
+```shell
+exit
+```
+
+#### 3-7. 設定反映(コンテナ再起動)
+```shell
+docker compose down
+docker compose build
+docker compose up -d
+```
+
+#### 3-8. 通信確認
+```shell
+docker compose exec client bash
+````
+
+HTTP通信、クライアント証明書なしのHTTPS通信はエラー。
+```shell
+curl http://localhost.app.sample.jp
+curl --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
+```
+
+クライアント証明書指定のHTTPS通信は正常応答を確認
+```shell
+curl --cert /mnt/share/client/client.crt --key /mnt/share/client/client.key --cacert /mnt/share/client/ca.crt https://localhost.app.sample.jp
+```
