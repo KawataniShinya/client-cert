@@ -99,6 +99,9 @@ CA証明書、サーバー証明書を発行し、HTTPS通信可能にする。
 ##### 2-1-1. CA秘密鍵作成
 ```shell
 docker compose exec ca bash
+cd /mnt/share/ca
+```
+```shell
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out ca.key
 ```
 
@@ -125,13 +128,20 @@ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out s
 
 #### 2-3. 証明書送信
 共有ディレクトリへのコピーをサーバーへのファイル連携とみなす。<br>
-対象ファイルは下記の通り。
+サーバー送付対象ファイルは下記の通り。
 - CA証明書
 - サーバー証明書
 - サーバー秘密鍵
-
 ```shell
 cp -p ca.crt server.crt server.key /mnt/share/server
+exit
+```
+
+クライアント送付対象ファイルは下記の通り。
+- CA証明書
+
+```shell
+cp -p ca.crt /mnt/share/client
 exit
 ```
 
