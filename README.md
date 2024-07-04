@@ -15,20 +15,20 @@ mTLS通信実現方法を確認することを目的に、下記ステップで�
 ## composition
 - Docker
 - Nginx
+- Laravel 
+- MySQL
 - openssl
 - curl
 
 ## install
-### 1. 全コンテナ起動
+### 1. コンテナビルド
 ```shell
 docker compose build
-docker compose up -d
 ```
 
-### 2. コンテナ確認
+### 2. 初期設定のためにコンテナ起動
 ```shell
-docker ps
-docker compose ps
+docker compose up -d app db 
 ```
 
 ### 3. 初期設定(webバックエンド)
@@ -47,9 +47,35 @@ npm install
 exit
 ```
 
-### 5. コンテナ停止の場合
+### 5. 初期設定(データベース設定)
+```shell
+docker compose exec db bash
+mysql -u root -proot -e "CREATE USER 'laravelUser' IDENTIFIED BY 'password000'"
+mysql -u root -proot -e "GRANT all ON *.* TO 'laravelUser'"
+mysql -u root -proot -e "FLUSH PRIVILEGES"
+mysql -u root -proot -e "CREATE DATABASE laravel_sample"
+exit
+```
+```shell
+docker compose exec app bash
+php artisan migrate:fresh --seed
+exit
+```
+
+### 6. コンテナ停止
 ```shell
 docker compose down
+```
+
+### 7. 全コンテナ起動
+```shell
+docker compose up -d
+```
+
+### 8. コンテナ確認
+```shell
+docker ps
+docker compose ps
 ```
 
 ## usage
